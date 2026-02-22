@@ -1,0 +1,118 @@
+# ---------
+# Terraform
+# ---------
+
+# Local .terraform directory
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Terraform state files — NEVER commit state to git
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Terraform variable override files
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+
+# Generated plan files
+*.tfplan
+tfplan
+
+# ---------
+# Packer
+# ---------
+
+# Packer manifest (generated after build)
+packer-manifest.json
+
+# Packer log files
+packer.log
+
+# ---------
+# Ansible
+# ---------
+
+# Ansible retry files
+*.retry
+
+# Ansible vault password files
+.vault_pass
+vault_pass.txt
+
+# Roles installed via ansible-galaxy
+packer/ansible/roles/external/
+
+# ---------
+# Secrets & credentials — CRITICAL: never commit these
+# ---------
+
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+credentials.json
+secrets.json
+
+# AWS credentials
+.aws/
+
+# ---------
+# OS and editor files
+# ---------
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ---------
+# Python
+# ---------
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+venv/
+.venv/
+env/
+pip-log.txt
+
+# ---------
+# Node (if any tooling uses it)
+# ---------
+
+node_modules/
+npm-debug.log*
+
+# ---------
+# Misc
+# ---------
+
+*.zip
+*.tar.gz
+*.bak
+*.tmp
+/tmp/
