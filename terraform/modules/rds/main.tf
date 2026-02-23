@@ -17,7 +17,7 @@ resource "aws_db_subnet_group" "main" {
 
 resource "aws_security_group" "rds" {
   name        = "${var.name_prefix}-rds-sg"
-  description = "RDS MySQL — allow inbound from ECS tasks only"
+  description = "Allows inbound from ECS tasks only"
   vpc_id      = var.vpc_id
 
   tags = { Name = "${var.name_prefix}-rds-sg" }
@@ -63,7 +63,6 @@ resource "aws_db_instance" "main" {
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  parameter_group_name   = aws_db_parameter_group.main.name
 
   multi_az               = var.db_multi_az
   publicly_accessible    = false
