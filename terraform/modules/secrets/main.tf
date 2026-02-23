@@ -16,3 +16,15 @@ resource "aws_secretsmanager_secret" "db" {
 
   tags = { Name = "${var.name_prefix}-db-secret" }
 }
+
+resource "aws_secretsmanager_secret_version" "db" {
+  secret_id = aws_secretsmanager_secret.db.id
+
+  secret_string = jsonencode({
+    username = var.db_username
+    password = random_password.db.result
+    dbname   = var.db_name
+    host     = ""   # updated after RDS is created
+    port     = 3306
+  })
+}
