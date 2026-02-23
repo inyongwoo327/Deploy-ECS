@@ -37,17 +37,17 @@ func TestECRModule(t *testing.T) {
 	defer terraform.Destroy(t, opts)
 	terraform.InitAndApply(t, opts)
 
-	// --- 1. Validate Repository URL ---
+	// 1. Validate Repository URL
 	repoURL := terraform.Output(t, opts, "repository_url")
 	assert.NotEmpty(t, repoURL)
 	assert.Contains(t, repoURL, namePrefix)
 	assert.Contains(t, repoURL, region)
 
-	// --- 2. Validate Repository Name ---
+	// 2. Validate Repository Name
 	repoName := terraform.Output(t, opts, "repository_name")
 	assert.Equal(t, namePrefix, repoName)
 
-	// --- 3. Validate ARN Format ---
+	// 3. Validate ARN Format
 	repoARN := terraform.Output(t, opts, "repository_arn")
 	assert.Contains(t, repoARN, "arn:aws:ecr:")
 }
