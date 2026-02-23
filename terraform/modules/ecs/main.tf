@@ -44,7 +44,7 @@ resource "aws_cloudwatch_log_group" "ecs" {
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "${var.name_prefix}-ecs-tasks-sg"
-  description = "ECS tasks — allow inbound from ALB, outbound unrestricted"
+  description = "ECS tasks that allow inbound from ALB, outbound unrestricted"
   vpc_id      = var.vpc_id
 
   tags = { Name = "${var.name_prefix}-ecs-tasks-sg" }
