@@ -1,0 +1,26 @@
+---
+# WordPress Role — Variables
+
+# WordPress version
+wordpress_version: "6.4.3"
+
+# Installation directory — Standard for the php:apache base image
+wordpress_install_dir: "/var/www/html"
+
+# WordPress download configuration
+wordpress_download_base: "https://wordpress.org"
+wordpress_download_url: "{{ wordpress_download_base }}/wordpress-{{ wordpress_version }}.tar.gz"
+
+# Authentication Keys & Salts
+# These use Ansible's lookup function to generate a 64-character random 
+# string during the Packer build process. This ensures that every image 
+# version has unique, secure salts baked in.
+
+wp_auth_key:         "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_secure_auth_key:  "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_logged_in_key:    "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_nonce_key:        "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_auth_salt:        "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_secure_auth_salt: "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_logged_in_salt:   "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"
+wp_nonce_salt:       "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits,punctuation') }}"

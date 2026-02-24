@@ -1,0 +1,126 @@
+---
+# WordPress Role — Tasks
+# Installs and configures WordPress inside a php:apache base image.
+
+# System dependencies & PHP Extensions
+
+- name: Install system packages and build dependencies
+  apt:
+    name:
+      - curl
+      - wget
+      - unzip
+      - tar
+      - less
+      - default-mysql-client
+      - libpng-dev
+      - libjpeg-dev
+      - libwebp-dev
+      - libzip-dev
+      - libonig-dev
+      - libxml2-dev
+      - libcurl4-openssl-dev
+      - libssl-dev
+    state: present
+    update_cache: true
+
+- name: Configure and install PHP extensions
+  shell: |
+    docker-php-ext-configure gd --with-jpeg --with-webp
+    docker-php-ext-install mysqli pdo pdo_mysql gd zip mbstring xml opcache exif intl
+  args:
+    creates: /usr/local/etc/php/conf.d/docker-php-ext-mysqli.ini
+
+# Apache configuration
+
+- name: Enable Apache modules
+  command: "a2enmod {{ item }}"
+  loop:
+    - rewrite
+    - headers
+  changed_when: false
+
+- name: Deploy Apache VirtualHost config
+  template:
+    src: wordpress-vhost.conf.j2
+    dest: /etc/apache2/sites-available/000-default.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy PHP production ini
+  template:
+    src: php.ini.j2
+    dest: /usr/local/etc/php/php.ini
+    owner: root
+    group: root
+    mode: "0644"
+
+# WordPress download & installation
+
+- name: Download and extract WordPress
+  unarchive:
+    src: "{{ wordpress_download_url }}"
+    dest: /tmp/
+    remote_src: true
+    creates: /tmp/wordpress
+
+- name: Ensure web root exists and is clean
+  file:
+    path: "{{ wordpress_install_dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+
+- name: Sync WordPress files to web root
+  copy:
+    src: /tmp/wordpress/
+    dest: "{{ wordpress_install_dir }}/"
+    remote_src: true
+    owner: www-data
+    group: www-data
+    mode: preserve
+
+# WordPress Configuration (Env-Var Driven)
+
+- name: Deploy wp-config.php
+  template:
+    src: wp-config.php.j2
+    dest: "{{ wordpress_install_dir }}/wp-config.php"
+    owner: www-data
+    group: www-data
+    mode: "0640"
+
+- name: Ensure .htaccess exists for permalinks
+  copy:
+    content: ""
+    dest: "{{ wordpress_install_dir }}/.htaccess"
+    force: false
+    owner: www-data
+    group: www-data
+    mode: "0644"
+
+# Permissions & WP-CLI
+
+- name: Set final ownership and permissions
+  file:
+    path: "{{ wordpress_install_dir }}"
+    owner: www-data
+    group: www-data
+    recurse: true
+
+- name: Install WP-CLI
+  get_url:
+    url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    dest: /usr/local/bin/wp
+    mode: "0755"
+
+# Cleanup
+
+- name: Remove temporary files and clean APT
+  shell: |
+    rm -rf /tmp/wordpress
+    apt-get autoremove -y
+    apt-get clean
+  changed_when: false
