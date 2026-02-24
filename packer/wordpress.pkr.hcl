@@ -26,36 +26,35 @@ variable "aws_region" {
 }
 
 variable "aws_account_id" {
-  description = "AWS account ID for ECR URL construction"
+  description = "AWS account ID"
   type        = string
 }
 
 variable "image_tag" {
-  description = "Docker image tag (defaults to wordpress version)"
+  description = "Docker image tag"
   type        = string
   default     = ""
+}
+
+variable "ecr_repository_name" {
+  description = "The name of the ECR repository"
+  type        = string
+  default     = "wordpress-ecs-dev" # Fallback default
 }
 
 locals {
   effective_tag = var.image_tag != "" ? var.image_tag : var.wordpress_version
   ecr_registry  = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
-  ecr_repo      = "wordpress-ecs"
+  ecr_repo      = var.ecr_repository_name
 }
 
 source "docker" "wordpress" {
   image  = "php:8.2-apache"
   commit = true
-
-  # run a container to allow provisioning
   run_command = ["-d", "-i", "-t", "--name", "packer-wordpress", "{{.Image}}", "/bin/bash"]
 
   changes = [
     "EXPOSE 80",
-    "ENV WORDPRESS_DB_HOST=''",
-    "ENV WORDPRESS_DB_USER=''",
-    "ENV WORDPRESS_DB_PASSWORD=''",
-    "ENV WORDPRESS_DB_NAME=wordpress",
-    "ENV WORDPRESS_TABLE_PREFIX=wp_",
     "WORKDIR /var/www/html",
     "CMD [\"apache2-foreground\"]"
   ]
@@ -65,40 +64,37 @@ build {
   name    = "wordpress-ecs"
   sources = ["source.docker.wordpress"]
 
-  # Allows Ansible to create its temporary directories and execute modules.
+  # Install Python, Ansible, and the system-level libraries required by the Ansible role
   provisioner "shell" {
     inline = [
       "apt-get update",
-      "apt-get install -y python3"
+      "apt-get install -y python3 ansible libicu-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev",
+      "mkdir -p /tmp/ansible-local"
     ]
   }
 
-  provisioner "ansible" {
-    playbook_file = "${path.root}/ansible/playbook.yaml"
-
+  # Execute Ansible locally inside the container
+  provisioner "ansible-local" {
+    playbook_file   = "${path.root}/ansible/playbook.yaml"
+    role_paths      = ["${path.root}/ansible/roles/wordpress"]
+    
     extra_arguments = [
       "--extra-vars", "wordpress_version=${var.wordpress_version}",
-      "--connection", "docker",
-      "-vv"
-    ]
-
-    ansible_env_vars = [
-      "ANSIBLE_HOST_KEY_CHECKING=False",
-      "ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3",
-      "ANSIBLE_REMOTE_TEMP=/tmp"
+      "--extra-vars", "ansible_python_interpreter=/usr/bin/python3",
+      "-v" 
     ]
   }
 
-  # Tag the committed image for ECR
-  post-processor "docker-tag" {
-    repository = "${local.ecr_registry}/${local.ecr_repo}"
-    tags       = [local.effective_tag, "latest"]
-  }
+  # Chain the post-processors together
+  post-processors {
+    post-processor "docker-tag" {
+      repository = "${local.ecr_registry}/${local.ecr_repo}"
+      tags       = [local.effective_tag, "latest"]
+    }
 
-  # Push to ECR
-  post-processor "docker-push" {
-    ecr_login    = true
-    aws_profile  = ""
-    login_server = local.ecr_registry
+    post-processor "docker-push" {
+      ecr_login    = true
+      login_server = local.ecr_registry
+    }
   }
 }
