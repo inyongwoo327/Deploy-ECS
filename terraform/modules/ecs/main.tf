@@ -172,10 +172,13 @@ resource "aws_ecs_service" "wordpress" {
     assign_public_ip = false
   }
 
-  load_balancer {
-    target_group_arn = var.alb_target_group_arn
-    container_name   = "wordpress"
-    container_port   = 80
+  dynamic "load_balancer" {
+    for_each = length(regexall("dummy", var.alb_target_group_arn)) > 0 ? [] : [1]
+    content {
+      target_group_arn = var.alb_target_group_arn
+      container_name   = "wordpress"
+      container_port   = 80
+    }
   }
 
   deployment_circuit_breaker {
