@@ -1,0 +1,11 @@
+---
+# Ansible Galaxy role & collection dependencies
+# Run: ansible-galaxy install -r requirements.yml
+
+roles: []
+
+collections:
+  - name: community.general
+    version: ">=8.0.0"
+  - name: ansible.posix
+    version: ">=1.5.0"

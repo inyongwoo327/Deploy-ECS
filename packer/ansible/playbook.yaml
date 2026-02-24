@@ -1,0 +1,12 @@
+---
+# WordPress ECS — Ansible Playbook
+# Runs inside the Docker container provisioned by Packer.
+
+- name: Provision WordPress container image
+  hosts: all
+  become: true
+  gather_facts: true
+
+  # Role variables are defined in roles/wordpress/vars/main.yml
+  roles:
+    - role: wordpress
