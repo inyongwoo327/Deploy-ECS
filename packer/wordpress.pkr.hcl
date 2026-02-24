@@ -65,7 +65,14 @@ build {
   name    = "wordpress-ecs"
   sources = ["source.docker.wordpress"]
 
-  # Run Ansible playbook inside the container
+  # Allows Ansible to create its temporary directories and execute modules.
+  provisioner "shell" {
+    inline = [
+      "apt-get update",
+      "apt-get install -y python3"
+    ]
+  }
+
   provisioner "ansible" {
     playbook_file = "${path.root}/ansible/playbook.yaml"
 
@@ -75,10 +82,10 @@ build {
       "-vv"
     ]
 
-    # Ansible needs the container name to connect via docker
     ansible_env_vars = [
       "ANSIBLE_HOST_KEY_CHECKING=False",
-      "ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3"
+      "ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3",
+      "ANSIBLE_REMOTE_TEMP=/tmp"
     ]
   }
 
