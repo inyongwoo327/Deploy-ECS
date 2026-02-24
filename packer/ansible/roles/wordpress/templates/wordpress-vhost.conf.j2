@@ -1,0 +1,32 @@
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    # Allow .htaccess overrides (required for WordPress permalinks)
+    <Directory /var/www/html>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Hide server version
+    ServerTokens Prod
+    ServerSignature Off
+
+    # Logging to stdout/stderr so ECS/CloudWatch picks them up
+    ErrorLog  /proc/self/fd/2
+    CustomLog /proc/self/fd/1 combined
+
+    # Health check endpoint (used by ALB target group)
+    # Returns 200 for the ALB without hitting WordPress bootstrap
+    <Location /health>
+        SetHandler server-status
+        Require all granted
+    </Location>
+</VirtualHost>
