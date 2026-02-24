@@ -13,14 +13,14 @@ import (
 func TestECSModuleBasic(t *testing.T) {
 	t.Parallel()
 
-	// --- 1. Setup ---
+	// 1. Setup
 	region := "eu-west-1"
 	// Generate a unique ID to avoid naming collisions in AWS
 	uniqueID := random.UniqueId()
 	namePrefix := fmt.Sprintf("wp-test-%s", uniqueID)
 	accountID := terraaws.GetAccountId(t)
 
-	// --- 2. Prerequisite: VPC ---
+	// 2. Prerequisite: VPC
 	// ECS needs a real VPC to exist to pass Terraform validation
 	vpcOpts := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../../terraform/modules/vpc",
@@ -41,7 +41,7 @@ func TestECSModuleBasic(t *testing.T) {
 	vpcID := terraform.Output(t, vpcOpts, "vpc_id")
 	privateSubnets := terraform.OutputList(t, vpcOpts, "private_subnet_ids")
 
-	// --- 3. ECS Module Test ---
+	// 3. ECS Module Test
 	opts := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../../terraform/modules/ecs",
 		Vars: map[string]interface{}{
@@ -50,12 +50,12 @@ func TestECSModuleBasic(t *testing.T) {
 			"vpc_id":             vpcID,
 			"private_subnet_ids": privateSubnets,
 
-			// To avoid the "NotFound" errors you saw earlier, we use
-			// the VPC's default security group as a placeholder.
+			// To avoid the "NotFound" errors,
+			// the VPC's default security group stays as placeholder.
 			"alb_security_group_id": terraform.Output(t, vpcOpts, "vpc_default_sg_id"),
 
 			// We provide a valid-looking but dummy ARN.
-			// NOTE: This will allow 'terraform plan' to pass, but 'apply' might fail
+			// This will allow 'terraform plan' to pass, but 'apply' might fail
 			// on the Service resource. This is why we test the outputs below.
 			"alb_target_group_arn":    fmt.Sprintf("arn:aws:elasticloadbalancing:%s:%s:targetgroup/dummy/123", region, accountID),
 			"task_execution_role_arn": fmt.Sprintf("arn:aws:iam::%s:role/ecsTaskExecutionRole", accountID),
@@ -76,17 +76,15 @@ func TestECSModuleBasic(t *testing.T) {
 	// the test will still show us if the Cluster and Log Groups were created successfully.
 	terraform.InitAndApply(t, opts)
 
-	// --- 4. New Test Cases ---
-
-	// Test Case 1: Cluster Existence
+	// 4. Cluster Existence
 	clusterName := terraform.Output(t, opts, "cluster_name")
 	assert.Equal(t, namePrefix+"-cluster", clusterName, "Cluster name should match prefix")
 
-	// Test Case 2: Log Group Validation
+	// 5. Log Group Validation
 	logGroup := terraform.Output(t, opts, "log_group_name")
 	assert.Contains(t, logGroup, namePrefix, "Log group should be named after our prefix")
 
-	// Test Case 3: Networking (Security Group)
+	// 6. Networking (Security Group)
 	// This ensures the module correctly created a security group for the tasks
 	taskSG := terraform.Output(t, opts, "task_security_group_id")
 	assert.NotEmpty(t, taskSG, "Module should output the created Task Security Group ID")

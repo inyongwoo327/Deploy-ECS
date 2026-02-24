@@ -1,14 +1,15 @@
-output "repository_url" {
-  description = "ECR repository URL, no tag"
-  value       = aws_ecr_repository.wordpress.repository_url
+output "secret_arn" {
+  description = "The ARN of the Secrets Manager secret"
+  value       = aws_secretsmanager_secret.db.arn
 }
 
-output "repository_arn" {
-  description = "ECR repository ARN"
-  value       = aws_ecr_repository.wordpress.arn
+output "secret_id" {
+  description = "The ID (name) of the Secrets Manager secret"
+  value       = aws_secretsmanager_secret.db.id
 }
 
-output "repository_name" {
-  description = "ECR repository name"
-  value       = aws_ecr_repository.wordpress.name
+output "db_password" {
+  description = "Generated DB password passed to the RDS module"
+  value       = random_password.db.result
+  sensitive   = true # Needs to prevent the password from printing in your terminal
 }
