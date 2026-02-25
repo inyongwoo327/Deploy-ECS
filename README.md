@@ -64,14 +64,13 @@ terraform init
 terraform apply -target=module.ecr -auto-approve
 ```
 
-### Step 2 — Build and Push the WordPress Image to ECR
+### Step 2 — Create ECR then build and Push the WordPress Image to ECR
 
 ```bash
-# Ensure AWS credentials are set
+# Make surev that AWS credentials are set
 aws configure
 
 cd Deploy-ECS/terraform
-Terraform init
 Terraform plan
 cd ..
 cd packer
@@ -114,7 +113,7 @@ Resolution: Modified the aws_secretsmanager_secret resource to include a random_
 ### 3. CPU Architecture Mismatch (Exec Format Error):
 The most significant hurdle was an Exec format error captured in the ECS Task logs. This occurred because the Docker image was built on a local Mac (ARM64 architecture) using Packer , while the AWS ECS cluster was defaulting to X86_64.
 
-Resolution: Synchronized the architecture by updating the Packer run_command to explicitly use --platform linux/arm64 and revised the ECS aws_ecs_task_definition to include the runtime_platform block specifying ARM64.
+Resolution: Synchronized the architecture, updated the Packer run_command to explicitly use --platform linux/arm64 and revised the ECS aws_ecs_task_definition to include the runtime_platform block specifying ARM64.
 
 ### 4. Apache Configuration Issue:
 ServerTokens is a global Apache directive. It can't go inside a <VirtualHost> block. 
@@ -124,8 +123,7 @@ Resolution: Moved ServerTokens and ServerSignature outside the VirtualHost block
 ### 5. AWS Service Limits:
 Early in the testing phase, automated deployments failed due to AWS account-level restrictions on creating Application Load Balancers.
 
-Resolution: Reached out to AWS Support Team directly then asked them to remove the restrictions on an account of creating Load Balancers (Ex. ALB). Eventually, AWS Support Team responded promptly and removed the restrictions. 
----
+Resolution: Reached out to AWS Support Team directly then asked them to remove the restrictions on an account of creating Load Balancers (Ex. alb). Eventually, AWS support team responded promptly and removed the restrictions. 
 
 ## 5. How would you have done things to achieve the best HA/automated architecture?
 
