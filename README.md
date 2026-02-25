@@ -71,30 +71,27 @@ terraform apply -target=module.ecr -auto-approve
 aws configure
 
 cd Deploy-ECS/terraform
-terraform init
-terraform plan
+Terraform init
+Terraform plan
 terraform apply -target=module.ecr
-
-cd ..
-
+Cd ..
+Cd packer
 packer init packer/wordpress.pkr.hcl
+Cd ansible
 ansible-galaxy collection install -r packer/ansible/requirements.yml
-
-packer validate -var "aws_account_id=547680454121" packer/wordpress.pkr.hcl
-
 ansible-galaxy collection install community.docker --upgrade
+Cd ..
+packer validate -var "aws_account_id=547680454121" wordpress.pkr.hcl
 
-REPO_NAME=$(cd terraform && terraform output -raw repository_name)
 
-# Build and Push in one step
-cd packer/
-packer init .
-packer build \ 
-  -var "aws_account_id=$(aws sts get-caller-identity 
-  --query Account --output text)" \ 
-  -var "ecr_repository_name=$REPO_NAME" \ 
-  packer/wordpress.pkr.hcl
-```
+
+# REPO_NAME=$(cd terraform && terraform output -raw repository_name)
+# packer build \ -var "aws_account_id=$(aws sts get-caller-identity --query Account --output text)" \ -var "ecr_repository_name=$REPO_NAME" \ packer/wordpress.pkr.hcl
+
+packer build -var "aws_account_id=$(aws sts get-caller-identity --query Account --output text)" wordpress.pkr.hcl
+Cd ../terraform
+
+Terraform apply —auto-approve
 
 ### Step 3 — Deploy All Infrastructure
 

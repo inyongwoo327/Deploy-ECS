@@ -9,3 +9,9 @@ variable "db_name" {
 variable "db_username" {
   type = string
 }
+
+variable "db_host" {
+  description = "The RDS instance endpoint"
+  type        = string
+  default     = "" # Optional default
+}

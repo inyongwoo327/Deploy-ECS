@@ -51,8 +51,13 @@ locals {
 source "docker" "wordpress" {
   image  = "php:8.2-apache"
   commit = true
-  run_command = ["-d", "-i", "-t", "--name", "packer-wordpress", "{{.Image}}", "/bin/bash"]
-
+  run_command = [
+    "-d", "-i", "-t", 
+    "--name", "packer-wordpress", 
+    "--platform", "linux/arm64", 
+    "{{.Image}}", "/bin/bash"
+  ]
+  
   changes = [
     "EXPOSE 80",
     "WORKDIR /var/www/html",
