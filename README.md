@@ -67,16 +67,33 @@ terraform apply -target=module.ecr -auto-approve
 ### Step 2 — Build and Push the WordPress Image
 
 ```bash
-# Authenticate Docker to ECR
-# $(aws sts get-caller-identity --query ACCOUNT --output text) returns AWS Account Number
-aws ecr get-login-password --region eu-west-1 \
-  | docker login --username USERNAME --password-stdin \
-    $(aws sts get-caller-identity --query ACCOUNT --output text).dkr.ecr.eu-west-1.amazonaws.com
+# Ensure AWS credentials are set
+aws configure
 
-# Build image with Packer
-cd ../packer/
+cd Deploy-ECS/terraform
+terraform init
+terraform plan
+terraform apply -target=module.ecr
+
+cd ..
+
+packer init packer/wordpress.pkr.hcl
+ansible-galaxy collection install -r packer/ansible/requirements.yml
+
+packer validate -var "aws_account_id=547680454121" packer/wordpress.pkr.hcl
+
+ansible-galaxy collection install community.docker --upgrade
+
+REPO_NAME=$(cd terraform && terraform output -raw repository_name)
+
+# Build and Push in one step
+cd packer/
 packer init .
-packer build wordpress.pkr.hcl
+packer build \ 
+  -var "aws_account_id=$(aws sts get-caller-identity 
+  --query Account --output text)" \ 
+  -var "ecr_repository_name=$REPO_NAME" \ 
+  packer/wordpress.pkr.hcl
 ```
 
 ### Step 3 — Deploy All Infrastructure
@@ -85,8 +102,6 @@ packer build wordpress.pkr.hcl
 cd ../terraform/
 terraform apply
 ```
-
-The ALB DNS name is printed in the outputs. Open it in your browser to complete the WordPress installation wizard.
 
 ### Clean Up
 

@@ -10,9 +10,9 @@ resource "random_password" "db" {
 }
 
 resource "aws_secretsmanager_secret" "db" {
-  name                    = "${var.name_prefix}/db-credentials"
+  name                    = "${var.name_prefix}/db-credentials-${random_id.secret_suffix.hex}"
   description             = "RDS MySQL credentials for ${var.name_prefix}"
-  recovery_window_in_days = 7
+  recovery_window_in_days = 0
 
   tags = { Name = "${var.name_prefix}-db-secret" }
 }

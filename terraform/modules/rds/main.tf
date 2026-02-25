@@ -66,7 +66,7 @@ resource "aws_db_instance" "main" {
 
   multi_az               = var.db_multi_az
   publicly_accessible    = false
-  skip_final_snapshot    = false
+  skip_final_snapshot    = true
   final_snapshot_identifier = "${var.name_prefix}-mysql-final-snapshot"
 
   backup_retention_period = var.db_backup_retention_days

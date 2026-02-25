@@ -1,7 +1,9 @@
 package test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -16,7 +18,8 @@ func TestRDSModule(t *testing.T) {
 	t.Parallel()
 
 	region := "eu-west-1"
-	namePrefix := "wp-unit-rds"
+	timestamp := time.Now().Format("021504")
+	namePrefix := fmt.Sprintf("wp-unit-%s", timestamp)
 
 	// 1. Create VPC
 	vpcOpts := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
