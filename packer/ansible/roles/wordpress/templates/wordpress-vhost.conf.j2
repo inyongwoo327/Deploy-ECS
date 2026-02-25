@@ -1,8 +1,11 @@
+# Global directives — must be outside VirtualHost
+ServerTokens Prod
+ServerSignature Off
+
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html
 
-    # Allow .htaccess overrides (required for WordPress permalinks)
     <Directory /var/www/html>
         Options -Indexes +FollowSymLinks
         AllowOverride All
@@ -15,16 +18,11 @@
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-    # Hide server version
-    ServerTokens Prod
-    ServerSignature Off
-
-    # Logging to stdout/stderr so ECS/CloudWatch picks them up
+    # Logs to stdout/stderr — CloudWatch picks them up
     ErrorLog  /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
 
-    # Health check endpoint (used by ALB target group)
-    # Returns 200 for the ALB without hitting WordPress bootstrap
+    # ALB health check endpoint
     <Location /health>
         SetHandler server-status
         Require all granted
